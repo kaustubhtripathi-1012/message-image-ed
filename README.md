@@ -1,25 +1,5 @@
 # 🔐 SecureVault — End-to-End Encrypted Communication Platform
 
-> **Military-grade AES-256-GCM end-to-end encryption for confidential messages and images with a zero-knowledge server architecture and enterprise cybersecurity interface.**
-
----
-
-## 📋 Table of Contents
-- [Overview](#-overview)
-- [Key Features](#-key-features)
-- [Cryptographic Architecture](#-cryptographic-architecture)
-- [Tech Stack](#-tech-stack)
-- [Project Structure](#-project-structure)
-- [Getting Started](#-getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-  - [Running the Application](#running-the-application)
-- [API Reference](#-api-reference)
-- [Security & Zero-Knowledge Model](#-security--zero-knowledge-model)
-- [UI/UX Design System](#-uiux-design-system)
-
----
-
 ## 🌟 Overview
 
 **SecureVault** is an enterprise-grade End-to-End Encrypted (E2EE) messaging and image exchange application designed to guarantee total privacy and confidentiality. All encryption and decryption operations occur strictly inside the user's web browser using standard Web Crypto APIs (`SubtleCrypto`). The server acts purely as a zero-knowledge routing and storage layer—storing only opaque ciphertext blobs and metadata, and never having access to plaintext keys, passwords, or decrypted content.
@@ -135,8 +115,6 @@ Message and Image ED/
 │       ├── messages.js         # Message encryption, compose, and inbox workflows
 │       └── recipients.js       # Recipient discovery & transfer authorization
 │
-├── prds/
-│   └── Professional UI&UX Requirements.md  # UI/UX Specification document
 │
 ├── run.py                      # Application launcher / local dev server
 └── README.md                   # Project documentation
@@ -244,5 +222,3 @@ Error Status        : #EF4444  (Red)
 ## 📜 Academic / Project Note
 
 This project is developed as an academic implementation showcasing modern Web Cryptography, zero-knowledge architecture, and secure client-server end-to-end communication principles.
-#   m e s s a g e - i m a g e - e d  
- 
