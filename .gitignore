@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Database and uploaded blobs
+*.db
+*.sqlite3
+encrypted_blobs/
+secure_vault.db
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

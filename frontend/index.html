@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" id="viewport-meta" content="width=device-width, initial-scale=1.0" />
+  <title>SecureVault — End-to-End Encrypted Communication</title>
+  <meta name="description"
+    content="Military-grade AES-256-GCM end-to-end encryption for messages and images. Zero-knowledge server." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+
+<body>
+
+  <!-- Particle canvas background -->
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+  <div id="app">
+
+    <!--  ══ HEADER  ══ -->
+    <header class="header" id="app-header">
+      <div class="header-brand">
+        <span class="brand-lock" aria-hidden="true">🔐</span>
+        <div>
+          <span class="brand-name">SecureVault</span>
+          <span class="brand-tag">End-to-End Encrypted</span>
+        </div>
+      </div>
+
+      <nav class="main-nav" id="main-nav" aria-label="Main navigation">
+        <button class="nav-btn" data-tab="messages" id="nav-messages" aria-controls="section-messages" disabled>
+          <span aria-hidden="true">💬</span> Messages
+        </button>
+        <button class="nav-btn" data-tab="images" id="nav-images" aria-controls="section-images" disabled>
+          <span aria-hidden="true">🖼️</span> Images
+        </button>
+
+        <!-- Recipients Nav Button: Icon + Name by default -->
+        <div class="nav-recipient-container" id="nav-recipient-container">
+          <button type="button" class="nav-btn nav-rec-btn" id="btn-toggle-recipient-box" data-tab="recipients" aria-controls="nav-recipient-dropdown" title="Recipients and transfer requests" disabled>
+            <span aria-hidden="true">👥</span>
+            <span>Recipients</span>
+            <span class="nav-rec-badge hidden" id="nav-rec-badge">0</span>
+          </button>
+
+          <!-- Dropdown search results & transfer requests (opens on click) -->
+          <div class="recipient-dropdown hidden" id="nav-recipient-dropdown" role="dialog" aria-modal="true" aria-label="Registered recipients and transfer requests">
+            <div class="rec-dropdown-head">
+              <div class="rec-dropdown-head-title">
+                <span aria-hidden="true">👥</span>
+                <span>Recipients &amp; Transfers</span>
+                <span class="rec-count-badge" id="rec-count-badge">0</span>
+              </div>
+              <button type="button" class="rec-close-btn" id="btn-close-rec-dropdown" title="Close panel" aria-label="Close">✕</button>
+            </div>
+
+            <!-- Search & Add Recipient Bar (Accessible inside dropdown on Desktop & Mobile) -->
+            <div class="rec-panel-search-bar" id="rec-panel-search-bar">
+              <div class="rec-panel-input-wrap">
+                <span class="rec-panel-search-icon" aria-hidden="true">🔍</span>
+                <input type="text" id="rec-panel-search-input" class="rec-panel-search-input" placeholder="Search recipient by username…" autocomplete="off" spellcheck="false" aria-label="Search recipient" />
+              </div>
+              <button type="button" class="btn btn-primary btn-panel-add-rec" id="btn-panel-add-rec" title="Add / Register new recipient" aria-label="Add new recipient">
+                <span>➕</span> Add
+              </button>
+            </div>
+
+            <!-- Pending Transfer Requests section -->
+            <div id="transfer-requests-section" class="transfer-requests-section hidden">
+              <div class="transfer-section-head">
+                <span>⚡ Transfer Requests</span>
+                <span class="transfer-badge" id="incoming-requests-badge">0</span>
+              </div>
+              <div id="transfer-requests-list" class="transfer-requests-list"></div>
+            </div>
+
+            <div class="rec-dropdown-list" id="rec-dropdown-list"></div>
+            <div class="rec-dropdown-footer">
+              <button type="button" class="btn-rec-quick-register" id="btn-rec-quick-register">
+                <span>➕</span> Register New Recipient
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <button class="nav-btn" data-tab="security" id="nav-security" aria-controls="section-security" disabled>
+          <span aria-hidden="true">🛡️</span> Security
+        </button>
+      </nav>
+
+      <div class="header-user" id="header-user">
+        <button type="button" class="btn-icon mobile-rec-toggle" id="btn-mobile-rec-search" title="Search recipients" aria-label="Search recipients" style="display:none;">
+          <span aria-hidden="true">🔍</span>
+          <span class="mobile-badge" id="mobile-header-rec-badge" style="display:none;">0</span>
+        </button>
+        <div class="user-chip" id="user-chip" style="display:none">
+          <span class="user-avatar" id="user-avatar" aria-hidden="true">?</span>
+          <span id="header-username">—</span>
+        </div>
+        <button class="btn btn-ghost btn-sm" id="logout-btn" style="display:none"
+          aria-label="Sign out">Sign&nbsp;Out</button>
+      </div>
+    </header>
+
+    <!--  ══ AUTH SECTION  ══ -->
+    <section id="section-auth" class="section active" aria-label="Authentication">
+      <div class="auth-wrap">
+
+        <!-- Hero -->
+        <div class="auth-hero" aria-hidden="true">
+          <div class="hero-glow"></div>
+          <div class="hero-icon">🔐</div>
+          <h1 class="hero-title">SecureVault</h1>
+          <p class="hero-subtitle">Your messages and images, encrypted before they leave your device. The server never
+            sees your plaintext.</p>
+          <div class="hero-badges" role="list">
+            <span class="badge" role="listitem">AES-256-GCM</span>
+            <span class="badge" role="listitem">PBKDF2-SHA-256</span>
+            <span class="badge" role="listitem">Zero-Knowledge</span>
+            <span class="badge" role="listitem">Open Web Crypto</span>
+          </div>
+          <div class="hero-features">
+            <div class="feat"><span>🔒</span><span>Client-side encryption</span></div>
+            <div class="feat"><span>🛡️</span><span>AEAD tamper detection</span></div>
+            <div class="feat"><span>🗝️</span><span>Unique key per operation</span></div>
+            <div class="feat"><span>🚫</span><span>No plaintext on server</span></div>
+          </div>
+        </div>
+
+        <!-- Auth card -->
+        <div class="auth-card glass">
+          <div class="auth-tabs" role="tablist" aria-label="Auth mode">
+            <button class="auth-tab active" role="tab" aria-selected="true" data-form="login"
+              id="tab-login">Login</button>
+            <button class="auth-tab" role="tab" aria-selected="false" data-form="register"
+              id="tab-register">Register</button>
+          </div>
+
+          <!-- Login Form -->
+          <form id="login-form" class="auth-form" role="tabpanel" aria-labelledby="tab-login" novalidate>
+            <div class="form-group">
+              <label for="login-username">Username</label>
+              <input type="text" id="login-username" name="username" placeholder="your_username" autocomplete="username"
+                spellcheck="false" required />
+            </div>
+            <div class="form-group">
+              <label for="login-password">Password</label>
+              <div class="pw-wrap">
+                <input type="password" id="login-password" name="password" placeholder="••••••••"
+                  autocomplete="current-password" required />
+                <button type="button" class="pw-toggle" data-target="login-password"
+                  aria-label="Toggle visibility">👁</button>
+              </div>
+            </div>
+            <div id="login-error" class="form-error" role="alert" hidden></div>
+            <button type="submit" class="btn btn-primary btn-full" id="login-btn">
+              <span aria-hidden="true">🔑</span> Login Securely
+            </button>
+          </form>
+
+          <!-- Register Form -->
+          <form id="register-form" class="auth-form hidden" role="tabpanel" aria-labelledby="tab-register" novalidate>
+            <div class="form-group">
+              <label for="reg-username">Username <small>(3–32 chars, a-z 0-9 _-)</small></label>
+              <input type="text" id="reg-username" name="username" placeholder="choose_username" autocomplete="username"
+                spellcheck="false" required minlength="3" maxlength="32" />
+            </div>
+            <div class="form-group">
+              <label for="reg-password">Password <small>(min 8 characters)</small></label>
+              <div class="pw-wrap">
+                <input type="password" id="reg-password" name="password" placeholder="••••••••"
+                  autocomplete="new-password" required minlength="8" />
+                <button type="button" class="pw-toggle" data-target="reg-password"
+                  aria-label="Toggle visibility">👁</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="reg-confirm">Confirm Password</label>
+              <div class="pw-wrap">
+                <input type="password" id="reg-confirm" name="confirm" placeholder="••••••••"
+                  autocomplete="new-password" required />
+                <button type="button" class="pw-toggle" data-target="reg-confirm"
+                  aria-label="Toggle visibility">👁</button>
+              </div>
+            </div>
+            <div id="register-error" class="form-error" role="alert" hidden></div>
+            <button type="submit" class="btn btn-primary btn-full" id="register-btn">
+              <span aria-hidden="true">✨</span> Create Account
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!--  ══ MESSAGES SECTION  ══ -->
+    <section id="section-messages" class="section hidden" aria-label="Encrypted Messages">
+      <div class="section-header">
+        <h2>💬 Encrypted Messages</h2>
+        <p>All encryption happens in your browser. The server stores only ciphertext — never plaintext.</p>
+      </div>
+
+      <div class="two-col">
+
+        <!-- Compose -->
+        <div class="card glass">
+          <div class="card-hdr">
+            <h3>✍️ Compose</h3>
+            <span class="e2ee-badge" title="End-to-End Encrypted">🔒 E2EE</span>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <label for="msg-recipient">To</label>
+              <select id="msg-recipient" class="form-select" aria-label="Select recipient">
+                <option value="">Select recipient…</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="msg-passphrase">
+                Shared Passphrase
+                <span class="info-tip" tabindex="0"
+                  aria-label="Both you and the recipient must use the same passphrase to decrypt">ⓘ</span>
+              </label>
+              <div class="pw-wrap">
+                <input type="password" id="msg-passphrase" placeholder="Share this passphrase with recipient"
+                  autocomplete="off" />
+                <button type="button" class="pw-toggle" data-target="msg-passphrase"
+                  aria-label="Toggle visibility">👁</button>
+              </div>
+              <div id="msg-fingerprint" class="fingerprint" aria-live="polite"></div>
+            </div>
+            <div class="form-group">
+              <label for="msg-text">Message <small id="msg-char-count">(0 / 65 536)</small></label>
+              <textarea id="msg-text" rows="5" placeholder="Type your confidential message…" maxlength="65536"
+                aria-describedby="msg-char-count"></textarea>
+            </div>
+
+            <!-- Encryption status stepper -->
+            <div id="msg-stepper" class="stepper hidden" aria-live="polite" aria-label="Encryption progress">
+              <div class="step" id="mstep-validate"> <span class="step-dot"></span><span>Validate</span></div>
+              <div class="step" id="mstep-derive"> <span class="step-dot"></span><span>Derive Key</span></div>
+              <div class="step" id="mstep-encrypt"> <span class="step-dot"></span><span>AES-256-GCM</span></div>
+              <div class="step" id="mstep-send"> <span class="step-dot"></span><span>Send Ciphertext</span></div>
+            </div>
+
+            <button class="btn btn-primary btn-full" id="send-msg-btn">
+              <span aria-hidden="true">🔒</span> Encrypt &amp; Send
+            </button>
+          </div>
+        </div>
+
+        <!-- Inbox / Sent -->
+        <div class="card glass">
+          <div class="card-hdr">
+            <h3>📬 Inbox</h3>
+            <button class="btn-icon" id="refresh-inbox" aria-label="Refresh inbox" title="Refresh">↺</button>
+          </div>
+          <div class="card-body">
+            <div class="mini-tabs" role="tablist">
+              <button class="mini-tab active" role="tab" data-box="received" aria-selected="true">Received</button>
+              <button class="mini-tab" role="tab" data-box="sent" aria-selected="false">Sent</button>
+            </div>
+            <div id="inbox-list" class="msg-list" aria-live="polite" aria-label="Message list">
+              <div class="empty-state">📭 No messages yet</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Message decrypt modal -->
+      <div id="msg-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="msg-modal-title">
+        <div class="modal-backdrop" id="msg-modal-backdrop"></div>
+        <div class="modal-box glass">
+          <div class="modal-hdr">
+            <h3 id="msg-modal-title">🔓 Decrypt Message</h3>
+            <button class="modal-close" id="close-msg-modal" aria-label="Close">✕</button>
+          </div>
+          <div class="modal-body">
+            <div class="msg-meta-box" id="msg-modal-meta" aria-live="polite"></div>
+            <div class="form-group">
+              <label for="dec-passphrase">Shared Passphrase</label>
+              <div class="pw-wrap">
+                <input type="password" id="dec-passphrase" placeholder="Enter the shared passphrase"
+                  autocomplete="off" />
+                <button type="button" class="pw-toggle" data-target="dec-passphrase"
+                  aria-label="Toggle visibility">👁</button>
+              </div>
+            </div>
+            <button class="btn btn-success btn-full" id="do-decrypt-msg">
+              <span aria-hidden="true">🔓</span> Verify &amp; Decrypt
+            </button>
+            <div id="dec-error" class="form-error" role="alert" hidden></div>
+            <div id="dec-result" class="decrypted-box" hidden>
+              <div class="auth-ok-badge">✅ Authentication Tag Verified — Content is authentic</div>
+              <div class="plaintext-output" id="plaintext-output"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!--  ══ IMAGES SECTION  ══ -->
+    <section id="section-images" class="section hidden" aria-label="Encrypted Images">
+      <div class="section-header">
+        <h2>🖼️ Encrypted Images</h2>
+        <p>Images are encrypted with AES-256-GCM before upload. The server cannot view them.</p>
+      </div>
+
+      <div class="two-col">
+
+        <!-- Upload / Encrypt -->
+        <div class="card glass">
+          <div class="card-hdr">
+            <h3>🔒 Encrypt &amp; Upload</h3>
+            <span class="e2ee-badge">🔒 E2EE</span>
+          </div>
+          <div class="card-body">
+
+            <!-- Drop zone -->
+            <div id="drop-zone" class="drop-zone" role="button" tabindex="0"
+              aria-label="Image drop zone. Click or drop an image here.">
+              <div class="drop-icon" aria-hidden="true">📸</div>
+              <p><strong>Drop image here</strong> or click to browse</p>
+              <p class="drop-hint">JPEG · PNG · WebP — Max 25 MB</p>
+              <input type="file" id="img-file-input" accept="image/jpeg,image/png,image/webp" aria-hidden="true"
+                tabindex="-1" />
+            </div>
+
+            <div id="img-preview-area" class="img-preview-area hidden">
+              <img id="img-preview" class="preview-thumb" alt="Selected image preview" />
+              <div id="img-file-info" class="file-info"></div>
+              <button class="btn btn-ghost btn-xs" id="remove-img">✕ Remove</button>
+            </div>
+
+            <div class="form-group">
+              <label for="img-recipient">
+                Recipient
+                <span class="info-tip" tabindex="0"
+                  aria-label="Select which user receives this encrypted image">ⓘ</span>
+              </label>
+              <select id="img-recipient" class="form-select" aria-label="Select image recipient">
+                <option value="">Select recipient (or self)…</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="img-passphrase">
+                Encryption Passphrase
+                <span class="info-tip" tabindex="0"
+                  aria-label="Remember this passphrase — you'll need it to decrypt">ⓘ</span>
+              </label>
+              <div class="pw-wrap">
+                <input type="password" id="img-passphrase" placeholder="Strong passphrase" autocomplete="off" />
+                <button type="button" class="pw-toggle" data-target="img-passphrase"
+                  aria-label="Toggle visibility">👁</button>
+              </div>
+            </div>
+
+            <!-- Progress steps -->
+            <div id="img-progress" class="prog-container hidden" aria-live="polite" aria-label="Encryption progress">
+              <div class="prog-steps">
+                <div class="prog-step" id="pstep-validate">
+                  <div class="pdot"></div><span>Validate</span>
+                </div>
+                <div class="prog-step" id="pstep-key">
+                  <div class="pdot"></div><span>Derive Key</span>
+                </div>
+                <div class="prog-step" id="pstep-encrypt">
+                  <div class="pdot"></div><span>Encrypt</span>
+                </div>
+                <div class="prog-step" id="pstep-upload">
+                  <div class="pdot"></div><span>Upload</span>
+                </div>
+              </div>
+              <div class="prog-bar-track" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+                id="img-prog-bar-wrap">
+                <div class="prog-bar-fill" id="img-prog-bar" style="width:0%"></div>
+              </div>
+              <div class="prog-label" id="img-prog-label">Preparing…</div>
+            </div>
+
+            <button class="btn btn-primary btn-full" id="upload-img-btn">
+              <span aria-hidden="true">🔒</span> Encrypt &amp; Upload
+            </button>
+          </div>
+        </div>
+
+        <!-- Images Inbox -->
+        <div class="card glass">
+          <div class="card-hdr" style="flex-wrap: wrap; gap: 0.5rem; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <h3>📬 Images Inbox</h3>
+              <span class="e2ee-badge" style="font-size: 0.65rem;">🔒 E2EE</span>
+            </div>
+            <div class="mini-tabs" role="tablist" style="margin-left: auto;">
+              <button class="mini-tab active" id="img-tab-received" data-box="received" role="tab" aria-selected="true">
+                <span>📩</span> Received
+              </button>
+              <button class="mini-tab" id="img-tab-sent" data-box="sent" role="tab" aria-selected="false">
+                <span>📤</span> Sent
+              </button>
+            </div>
+            <button class="btn-icon" id="refresh-gallery" aria-label="Refresh gallery" title="Refresh">↺</button>
+          </div>
+          <div class="card-body">
+            <div id="img-gallery" class="img-gallery" aria-live="polite" aria-label="Encrypted image gallery">
+              <div class="empty-state">🔒 No encrypted images yet</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Image decrypt modal -->
+      <div id="img-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="img-modal-title">
+        <div class="modal-backdrop" id="img-modal-backdrop"></div>
+        <div class="modal-box modal-lg glass">
+          <div class="modal-hdr">
+            <h3 id="img-modal-title">🔓 Decrypt Image</h3>
+            <button class="modal-close" id="close-img-modal" aria-label="Close">✕</button>
+          </div>
+          <div class="modal-body">
+            <div class="img-meta-box" id="img-modal-meta"></div>
+            <div class="form-group">
+              <label for="img-dec-passphrase">Decryption Passphrase</label>
+              <div class="pw-wrap">
+                <input type="password" id="img-dec-passphrase" placeholder="Passphrase used during encryption"
+                  autocomplete="off" />
+                <button type="button" class="pw-toggle" data-target="img-dec-passphrase"
+                  aria-label="Toggle visibility">👁</button>
+              </div>
+            </div>
+            <button class="btn btn-success btn-full" id="do-decrypt-img">
+              <span aria-hidden="true">🔓</span> Verify Integrity &amp; Decrypt
+            </button>
+            <div id="img-dec-error" class="form-error" role="alert" hidden></div>
+            <div id="img-integrity-badge" class="integrity-badge hidden" aria-live="polite">
+              🛡️ <strong>AES-GCM Auth Tag Verified</strong> — Image is authentic and unmodified
+            </div>
+            <div id="img-dec-result" class="img-dec-result hidden">
+              <img id="decrypted-img" class="decrypted-image" alt="Decrypted image" />
+              <div class="dec-img-actions">
+                <a id="download-decrypted-img" class="btn btn-primary" download="decrypted_image">
+                  ⬇ Download
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!--  ══ SECURITY SECTION  ══ -->
+    <section id="section-security" class="section hidden" aria-label="Security Dashboard">
+      <div class="section-header">
+        <h2>🛡️ Security Dashboard</h2>
+        <p>Cryptographic configuration, architecture overview, and your personal audit log.</p>
+      </div>
+
+      <div class="security-grid">
+
+        <!-- Crypto specs -->
+        <div class="card glass">
+          <div class="card-hdr">
+            <h3>🔬 Cryptographic Configuration</h3>
+          </div>
+          <div class="card-body">
+            <dl class="spec-list">
+              <div class="spec-row">
+                <dt>Encryption</dt>
+                <dd><span class="badge badge-green">AES-256-GCM</span></dd>
+              </div>
+              <div class="spec-row">
+                <dt>Key Size</dt>
+                <dd>256 bits</dd>
+              </div>
+              <div class="spec-row">
+                <dt>Authentication Tag</dt>
+                <dd>128 bits (GCM)</dd>
+              </div>
+              <div class="spec-row">
+                <dt>Key Derivation</dt>
+                <dd><span class="badge badge-green">PBKDF2-SHA-256</span></dd>
+              </div>
+              <div class="spec-row">
+                <dt>PBKDF2 Iterations</dt>
+                <dd>100 000</dd>
+              </div>
+              <div class="spec-row">
+                <dt>Nonce / IV</dt>
+                <dd>96-bit, fresh per operation</dd>
+              </div>
+              <div class="spec-row">
+                <dt>Salt</dt>
+                <dd>128-bit, fresh per operation</dd>
+              </div>
+              <div class="spec-row">
+                <dt>Random Source</dt>
+                <dd><span class="badge badge-blue">OS CSPRNG (Web Crypto)</span></dd>
+              </div>
+              <div class="spec-row">
+                <dt>Password Hashing</dt>
+                <dd><span class="badge badge-green">Argon2id (server)</span></dd>
+              </div>
+              <div class="spec-row">
+                <dt>Transport</dt>
+                <dd>HTTPS / TLS</dd>
+              </div>
+              <div class="spec-row">
+                <dt>Server Plaintext Access</dt>
+                <dd><span class="badge badge-red">None — E2EE</span></dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+
+        <!-- Architecture -->
+        <div class="card glass">
+          <div class="card-hdr">
+            <h3>🏗️ E2EE Architecture</h3>
+          </div>
+          <div class="card-body">
+            <div class="arch-flow" aria-label="Encryption flow diagram">
+              <div class="arch-node">
+                <div class="arch-icon-box client">💻</div>
+                <div class="arch-node-label">Your Browser</div>
+                <div class="arch-node-detail">Encrypt / Decrypt locally</div>
+              </div>
+              <div class="arch-connector">
+                <div class="arch-label-top">🔒 Ciphertext only</div>
+                <div class="arch-line">
+                  <div class="arch-arrow-head">→</div>
+                </div>
+                <div class="arch-label-bot">via TLS</div>
+              </div>
+              <div class="arch-node">
+                <div class="arch-icon-box server">🖥️</div>
+                <div class="arch-node-label">Server</div>
+                <div class="arch-node-detail">Store &amp; Route</div>
+              </div>
+              <div class="arch-connector">
+                <div class="arch-label-top">🔒 Ciphertext only</div>
+                <div class="arch-line">
+                  <div class="arch-arrow-head">→</div>
+                </div>
+                <div class="arch-label-bot">via TLS</div>
+              </div>
+              <div class="arch-node">
+                <div class="arch-icon-box recipient">💻</div>
+                <div class="arch-node-label">Recipient</div>
+                <div class="arch-node-detail">Decrypt locally</div>
+              </div>
+            </div>
+            <div class="arch-note">
+              ⚠️ <strong>Zero-Knowledge:</strong> The server cannot read messages or images. It stores only ciphertext
+              and routing metadata.
+            </div>
+          </div>
+        </div>
+
+        <!-- Audit log (full width) -->
+        <div class="card glass card-full">
+          <div class="card-hdr" style="flex-wrap: wrap; gap: 0.75rem;">
+            <div>
+              <h3>📋 Security Audit Log</h3>
+              <span style="font-size: 0.75rem; color: var(--text-3);">Capacity: Max 20 recent events</span>
+            </div>
+            <div class="mini-tabs" role="tablist" id="audit-filter-tabs" style="margin-left: auto;">
+              <button class="mini-tab active" data-filter="all" role="tab" id="audit-tab-all">All (20)</button>
+              <button class="mini-tab" data-filter="auth" role="tab" id="audit-tab-auth">🔑 Login / Sign Out</button>
+              <button class="mini-tab" data-filter="content" role="tab" id="audit-tab-content">💬 Messages &amp; 🖼️ Images</button>
+            </div>
+            <div style="display: flex; gap: 0.4rem; align-items: center;">
+              <button class="btn btn-ghost btn-sm" id="refresh-audit" title="Refresh audit log">↺ Refresh</button>
+              <button class="btn btn-ghost btn-sm" id="btn-clear-audit" style="color: #f87171; border-color: rgba(239, 68, 68, 0.3);" title="Clear audit log">🗑 Clear Log</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div id="audit-log" class="audit-log" aria-live="polite" aria-label="Security events">
+              <div class="loading-placeholder">Loading audit events…</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </div><!-- /#app -->
+
+  <!-- ══ Add Recipient Modal ══ -->
+  <div id="add-recipient-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="add-rec-title">
+    <div class="modal-backdrop" id="add-rec-backdrop"></div>
+    <div class="modal-box glass" style="max-width: 440px;">
+      <div class="modal-hdr">
+        <h3 id="add-rec-title">➕ Add / Register Recipient</h3>
+        <button class="modal-close" id="close-add-rec-modal" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc" style="font-size: 0.85rem; color: var(--text-2); margin-bottom: 1rem;">
+          Register a recipient account to exchange end-to-end encrypted messages and content.
+        </p>
+        <form id="add-recipient-form" novalidate>
+          <div class="form-group">
+            <label for="add-rec-username">Recipient Username</label>
+            <input type="text" id="add-rec-username" placeholder="e.g. kaustubh, raghav…" autocomplete="off" required spellcheck="false" />
+          </div>
+          <div class="form-group">
+            <label for="add-rec-password">Password</label>
+            <div class="pw-wrap">
+              <input type="password" id="add-rec-password" value="password123" placeholder="password123" required />
+              <button type="button" class="pw-toggle" data-target="add-rec-password" aria-label="Toggle visibility">👁</button>
+            </div>
+            <span class="form-hint" style="font-size: 0.72rem; color: var(--text-3); margin-top: 0.3rem; display: block;">
+              Default password set to <code>password123</code>
+            </span>
+          </div>
+          <div id="add-rec-error" class="form-error" role="alert" hidden></div>
+          <button type="submit" class="btn btn-primary btn-full" id="btn-submit-add-recipient" style="margin-top: 0.5rem;">
+            <span>➕</span> Register &amp; Select Recipient
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Bottom Navigation Bar (Active on Smartphone viewports when logged in) -->
+  <nav class="mobile-bottom-nav hidden" id="mobile-bottom-nav" aria-label="Mobile Navigation">
+    <button type="button" class="mobile-nav-btn active" data-tab="messages" id="mob-nav-messages" aria-label="Messages">
+      <span class="mob-icon" aria-hidden="true">💬</span>
+      <span class="mob-label">Messages</span>
+    </button>
+    <button type="button" class="mobile-nav-btn" data-tab="images" id="mob-nav-images" aria-label="Images">
+      <span class="mob-icon" aria-hidden="true">🖼️</span>
+      <span class="mob-label">Images</span>
+    </button>
+    <button type="button" class="mobile-nav-btn" id="mob-nav-recipients" aria-label="Recipients and transfers">
+      <div class="mob-icon-wrap">
+        <span class="mob-icon" aria-hidden="true">🔍</span>
+        <span class="mob-badge hidden" id="mob-rec-badge">0</span>
+      </div>
+      <span class="mob-label">Recipients</span>
+    </button>
+    <button type="button" class="mobile-nav-btn" data-tab="security" id="mob-nav-security" aria-label="Security">
+      <span class="mob-icon" aria-hidden="true">🛡️</span>
+      <span class="mob-label">Security</span>
+    </button>
+  </nav>
+
+
+
+  <!-- Toast notifications -->
+  <div id="toast-container" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Mobile Recipient Dropdown Backdrop -->
+  <div class="recipient-backdrop hidden" id="rec-dropdown-backdrop" aria-hidden="true"></div>
+
+  <!-- ───────── Scripts ───────── -->
+  <script src="/js/crypto.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/messages.js"></script>
+  <script src="/js/images.js"></script>
+  <script src="/js/recipients.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+
+</html>
